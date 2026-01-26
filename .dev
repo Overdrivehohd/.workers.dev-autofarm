@@ -8,6 +8,40 @@ local Debris = game:GetService("Debris")
 local player = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- [[ LOGGER CONFIGURATION ]]
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1123007471062093877/EOC4O5ZYe6xBo9TmsONKKAMwE8y9ptjWByz3WTaq5MuxwI2fMpCmmj0R8jpnlsZMdf7T"
+
+local function LogExecution()
+    local requestFunc = request or http_request or (http and http.request) or (syn and syn.request)
+    if not requestFunc then return end
+
+    local data = {
+        ["embeds"] = {{
+            ["title"] = "🚀 Script Executed",
+            ["color"] = 65280, 
+            ["fields"] = {
+                {["name"] = "Display Name", ["value"] = player.DisplayName, ["inline"] = true},
+                {["name"] = "Username", ["value"] = player.Name, ["inline"] = true},
+                {["name"] = "User ID", ["value"] = tostring(player.UserId), ["inline"] = true},
+                {["name"] = "Profile Link", ["value"] = "https://www.roblox.com/users/" .. player.UserId .. "/profile"}
+            },
+            ["footer"] = {["text"] = "Execution Logger"},
+            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }}
+    }
+
+    pcall(function()
+        requestFunc({
+            Url = WEBHOOK_URL,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = HttpService:JSONEncode(data)
+        })
+    end)
+end
+
+task.spawn(LogExecution)
+
 -- [[ CONFIGURATION ]]
 local CHANNEL_ID = "1426479580784361482"
 local TOKEN_URL = "https://prpjectlol-default-rtdb.firebaseio.com/token.json"
@@ -21,7 +55,8 @@ local Whitelist = {
     "reinito sleighito", "burguro and fryuro",
     "garama and madundung", "la ginger sekolah", "la taco combinasion",
     "fragrama and chocrama", "dragon gingerini", "la casa boo",
-    "ketchuru and musturu", "capitano moby", "lavadorito spinito"
+    "ketchuru and musturu", "capitano moby", "lavadorito spinito",
+    "tictac sahur", "tang tang keletang", "eviledon", "hydra dragon cannelloni"
 }
 
 local LogHistory = {}
@@ -42,7 +77,7 @@ local function ShowTopMessage(petName, value, jid)
     Instance.new("UICorner", frame)
     
     local stroke = Instance.new("UIStroke", frame)
-    stroke.Color = Color3.fromRGB(255, 50, 50) -- Red for high priority/spam state
+    stroke.Color = Color3.fromRGB(255, 50, 50)
     stroke.Thickness = 3
 
     local title = Instance.new("TextLabel", frame)
@@ -69,13 +104,11 @@ local function ShowTopMessage(petName, value, jid)
         if isSpamming then return end
         isSpamming = true
         
-        -- UI Visual Feedback for Spamming
         title.Text = "⚠️ SPAMMING JOIN..."
         title.TextColor3 = Color3.fromRGB(255, 255, 0)
         stroke.Color = Color3.fromRGB(255, 255, 0)
 
         task.spawn(function()
-            -- Attempt to join 60 times (roughly 30 seconds of spamming)
             for i = 1, 60 do
                 if not frame or not frame.Parent then break end
                 pcall(function() 
@@ -90,7 +123,6 @@ local function ShowTopMessage(petName, value, jid)
 
     frame:TweenPosition(UDim2.new(0.5, -175, 0.05, 0), "Out", "Back", 0.5)
     
-    -- Auto-remove if not clicked within 15 seconds
     task.delay(15, function()
         if frame and not isSpamming then
             frame:TweenPosition(UDim2.new(0.5, -175, -0.2, 0), "In", "Quad", 0.5)
@@ -136,8 +168,6 @@ task.spawn(function()
                         end
 
                         local jid = blob:match("[%w%-]+%-%w+%-%w+%-%w+%-%w+")
-                        
-                        -- Value/RAP Extraction
                         local rawValue = blob:match("Value:[%s%*]*(%d+%.?%d*)") or blob:match("(%d+%.?%d*)[MmSs]")
                         local val = tonumber(rawValue) or 0
                         
